@@ -1,0 +1,32 @@
+name: db-oracle-volume
+
+on: push
+
+jobs:
+  database-action:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Create database files directory
+        run: mkdir ${{ github.workspace }}/database-files
+
+      - name: Create datamodel directory
+        run: mkdir -p ./datamodel
+
+      - name: Setup Oracle Free container
+        uses: gvenzl/setup-oracle-free@v1
+        with:
+          app-user: test
+          app-user-password: test
+          volume: ${{ github.workspace }}/database-files
+          setup-scripts: ./datamodel
+
+      - uses: gvenzl/setup-oracle-sqlcl@v1
+
+      - name: Run SQLcl query
+        run: |
+          echo "SELECT country_code, official_name, population \
+          FROM countries WHERE name = 'Austria';" \
+          | sql test/test@localhost/FREEPDB1
